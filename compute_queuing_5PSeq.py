@@ -12,10 +12,11 @@
 #                 4  -108:-106   *4 (tetra-somes) . # ver. 0.1.6
 # divide with avarage codon coverage   and  sum()  = QS
 # 
+# bkg region can be selected between peaks (-bkg 2) or before tetrasome peak area (-bkg 1 (default) ) # ver. 0.1.7
 #
 __author__		= "Tonu Margus"
 __copyright__	= "Copyright 2020"
-__version__		= "0.1.6"
+__version__		= "0.1.7"
 __email__		= "tonu.margus@gmail.com"
 __status__		= "beta"
 
@@ -29,13 +30,15 @@ parser = argparse.ArgumentParser(description='Computes ribosomes queing score at
 parser.add_argument('-i', type=str, help='input table of gene coverage in *.hd5 format')
 parser.add_argument('-o', type=str, help='output file name  *.csv')
 parser.add_argument('-annot',  type=str, help='GTF annotation file', default='0-References/genome.gtf.gz')
-parser.add_argument('-th1',  type=float, help='Summary gene coverage 120 nt before stop - 10(rpm) default', default=15)
+parser.add_argument('-th1',  type=float, help='Summary gene coverage 150 nt before stop - 10(rpm) default', default=15)
 parser.add_argument('-th2',  type=float, help='Background coverage - codon mean from -115 up to Span', default=0.15)
-parser.add_argument('-span',  type=int, help='Positions before - stop recommended 150 or bigger', default=180)
+parser.add_argument('-span',  type=int, help='Positions before - stop recommended 150 or bigger', default=150)
+parser.add_argument('-bkg',  type=int, help='region for bakground 1 - before tetrasoes OR 2 - between peaks', default=1)
 parser.add_argument('-col',  type=str, help='column for values: "sum"; "rpm"; "counts"', default='rpm')
 #parser.add_argument('-subsets',  type=str, help='Split to subsets based Stop codon', default='NA')
 args = parser.parse_args()
 
+message = "between peaks" if args.bkg==2 else "{} to {}".format(-args.span, -115)
 
 print("\n\
 -i           input *.h5: {}\n\
@@ -44,7 +47,8 @@ print("\n\
 -col             column: {}\n\
 -th1   region threshold: {}\n\
 -th2      bkg threshold: {}\n\
--span    nt before stop: {}\n".format(args.i, args.o, args.annot, args.col, args.th1, args.th2, args.span))
+-bkg      bkg region is: {}\n\
+-span    nt before stop: {}\n".format(args.i, args.o, args.annot, args.col, args.th1, args.th2, message, args.span))
 
 usage = "./compute_queuing_5PSeq.py -i *.hdf  -o *.csv"
 
@@ -58,6 +62,16 @@ thres_bkg  = args.th2
 Span       = args.span     
 annotation = args.annot
 col        = args.col
+bkg_region = args.bkg
+
+## check is there enough space for background
+if (Span<109)  & (bkg==2):
+    report = "Increase -ppan at least up to 108. Current value is {} ".format(Span)
+    sys.exit("\n {} \n".format(report))
+# Span - 115 must be bigger than 9 nt
+if ((Span-115)<9) & (bkg==1):
+     report = "{}nt is too little for backgrouns. Increase Span at least up to 124".format(Span-115)
+     sys.exit("\n {} \n".format(report))
 
 replacestr = "_th{}-{}_v4.csv".format(thres_cover, thres_bkg)
 outfile = outfile.replace('.csv', replacestr)
@@ -153,7 +167,12 @@ for ref in yeastChr():
         s = reindex(s, name=str(col), index=index)
         # get regions
         # codon wise 
-        bkg = s.loc[-Span:-115].mean()*3      # 5PSeq & Series
+        if bkg_region == 1:
+            bkg = s.loc[-Span:-115].mean()*3      # 5PSeq & Series
+        elif bkg_region == 2:
+            bkg = (s.loc[-43:-21].mean()*3 + s.loc[-73:-51].mean()*3 + s.loc[-103:-81].mean()*3)/3 # to get mean value for codon
+        else:
+            sys.exit("-bkg can be 1 or 2  but is {}".format(args.bkg))
         
         if bkg <= thres_bkg:    #FILTER 2
             continue
