@@ -1,7 +1,7 @@
 # 5pSeq
-Scripts for 5' Seq data analysis are written in Python 3 (ver 3.6).
-Scripts are experimental and in development stage so don't use for publications.
- 
+Scripts for 5' Seq data analysis in Python 3 (ver 3.6).
+Scripts are in development stage so don't use for publications.
+
 In addition to basic Python libraries it assumes `pysam`, `argparse`, `pandas`, `collections`, `glob` to be installed. 
 
 ## Short description of scripts
