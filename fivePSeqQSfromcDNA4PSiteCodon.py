@@ -8,41 +8,49 @@
 
 __author__		= "Tonu Margus"
 __copyright__	= "Copyright 2020"
-__version__		= "0.0.1"
+__version__		= "0.0.2"
 __email__		= "tonu.margus@gmail.com"
 __status__		= "beta"
 
 import re
 import sys
-import pysam
 import argparse
 import pandas as pd
+import numpy as np
 import pickle
 # 
 # -i input comes from the script fivePSeqMap2cdnawitfOffset.py (https://github.com/tmargus/5pSeq)
 #
-parser = argparse.ArgumentParser(description="P-site assigned reads (offset 15)" )
+parser = argparse.ArgumentParser(description="Queuing scores for fixed P-site {61} A-Site pairs in the middle of coding sequence" )
 parser.add_argument('-i',  type=str, help='input py3 pickle file from "fivePSeqMap2cdnawithOffset.py" ')
-parser.add_argument('-f',  type=str, help='')
-parser.add_argument('-o',  type=str, help='output_QS_.csv offset added lik QS_./QS_offset.', default='output_QS_.csv')
+parser.add_argument('-codon',  type=str, help='P-Site codon', default="AAA")
+parser.add_argument('-per',  type=int, help='Periodicity in codons for QS; default is 10 codons', default=10)
+parser.add_argument('-o',  type=str, help='output_QS.csv', default='QS-coding-region_AAA_P-site.csv')
 args = parser.parse_args()
 
 ## set some filters
-min_counts   = 10  # minimal number of reads mapped to gene
-min_aver_cov = 0.2 # minimal average coverage  all_counts/gene_length_in_codons
+#min_counts = 10  # minimal number of reads mapped to gene
+min_bkg    = 0.05 # minimal average coverage  all_counts/gene_length_in_codons
  ##
 sys.stderr.write("\n\
--i  input sorted BAM : {}\n\
--f  cDNA in fasta    : {}\n\
--o  output pkl       : {}\n\n".format(args.i, args.f, args.o))
+-i     input pickled dict : {}\n\
+-codon     P-Site codon   : {}\n\
+-per periodicity in codons: {}\n\
+-o     output_table.csv   : {}\n\n".format(args.i, args.codon, args.per, args.o))
 
-usage = 'python fivePSeqQSfromcDNA4PSiteCodon.py  -i experiment_cond.pkl -o  output_cdna.csv"'
+usage = 'python fivePSeqQSfromcDNA4PSiteCodon.py  -codon AAA -i experiment_cond.pkl -o  output_cdna.csv"' 
 
 if args.i==None:
      sys.exit("\n  usage:\n\t{}\n".format(usage))
+     
 ###################################################################
 
+codon = args.codon
+of    = open( args.o, "w")
+l     = []
 
+report = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format("pos","QS","qs_sum","bkg","E","P","A","rep","cDNA")
+of.write(report +"\n")
 
 ###################################################################
 # Functions
@@ -63,8 +71,9 @@ def qsW(df, i, per=10):
     s1 = df.loc[i+1,'counts']          # mono-
     s2 = df.loc[i-per+1,'counts']  *2  # di-
     s3 = df.loc[i-per*2+1,'counts']*3  # tri-
+    s4 = df.loc[i-per*3+1,'counts']*4  # tri-
     
-    return s1+s2+s3
+    return s1+s2+s3+s4
 
 def qs_bkg(df,i,per=10):
     ''' background between given period
@@ -86,28 +95,31 @@ def block(index_l, i, incr=1):
     a = np.array(index_l)
     return len(a[(a>=i-incr) &(a<=i+incr)])
 
-
 ###################################################################
 # main program
-# 
-f = "WT20C_V_QS-coding-region_AGG_P-site.csv" ############outfile 
-of = open(f, "w")
-l = []
 
-report = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format("pos","QS","qs_sum","bkg","E","P","A","rep","cDNA")
-of.write(report +"\n")
+with open(args.i, 'rb') as handle:
+    d = pickle.load(handle)
+       
+print("{:,} cDNAs from input file".format(len(d)))
+print("QS for P-Site {}  A-Site NNN pairs".format(codon)) 
 
-c = c1 = 0
+c = c1 = cc = 0
 
 for k in list(d.keys()): 
 
     df   = d[k]
-    cp_l = codon_positions(df, 'AGG')
+    cp_l = codon_positions(df, codon=codon)
     
     for i in cp_l:
+        if c == 10000:
+            cc+=c
+            print("{:,} ...".format(cc))
+            c=0
+            
         qs_sum = qsW(df, i, per=10)
         bkg    = qs_bkg(df,i, per=10)
-        if bkg < 0.05:   # avoid div 0
+        if bkg < min_bkg:   # avoid div 0
             c1+=1
             continue
             
@@ -122,4 +134,5 @@ for k in list(d.keys()):
         c+=1
         
 of.close()
-print(f)
+print("{:,} total QS for codon pairs {}[NNN]!".format(cc+c, codon))
+print(args.o)
