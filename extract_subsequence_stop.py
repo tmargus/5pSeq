@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-#
+# assuming python 3.[4-6]
 
 __author__		= "Tonu Margus"
 __copyright__	= "Copyright 2020"
-__version__		= "0.1.5"
+__version__		= "0.1.7"
 __email__		= "tonu.margus@gmail.com"
 __status__		= "beta"
 
@@ -90,7 +90,7 @@ def read_FASTA_dictionary(filename, splitstr='|', SplitHeader=False):
     
     "Bioinformatics Programming Using Python by Mitchell L Model"
     """
-    return {info[0]: seq for info, seq in read_FASTA(filename)}
+    return {info[0]: seq for info, seq in read_FASTA(filename, splitstr=splitstr, SplitHeader=SplitHeader)}
 
 def get_part_from_gtf(annotation, reference=None, feature="CDS"):
     """ Returns a part from GTF annotation 
@@ -146,7 +146,7 @@ DNA_codon_table = {
 }
 
 
-genome = read_FASTA_dictionary(genomefile, SplitHeader=False)
+genome = read_FASTA_dictionary(genomefile, splitstr=' ', SplitHeader=True)
 
 stop_gtf_l = get_part_from_gtf(annotation, reference=None, feature="stop_codon") # gtf part for stop
 
