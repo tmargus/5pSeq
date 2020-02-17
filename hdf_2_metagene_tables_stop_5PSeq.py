@@ -44,7 +44,7 @@ print("\n\
 -glist  subsets by list: {}\n".format(args.i, args.prefix,args.annot, args.genome, args.col, args.th, args.span, args.norm, args.subsets, args.glist))
 
 usage = "./hdf_2_metagene_tables_1_dev.py  -i WTS1_5-End_21-33_idx_assign_rpm.h5   -prefix WTS1_stop_metagene   -norm  Yes\n\n \
-\t\t  assumes *.hd5 file keys structure \"Chr/For\"   - chromosome and strand \n " 
+\t\t  assumes *.hd5 file keys structure \"'For_rpm/Chr\"   - strand and chromosome \n " 
 
 
 if (args.i==None)|(args.prefix==None):

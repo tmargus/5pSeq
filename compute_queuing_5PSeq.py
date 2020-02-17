@@ -33,9 +33,8 @@ parser.add_argument('-annot',  type=str, help='GTF annotation file', default='0-
 parser.add_argument('-th1',  type=float, help='Summary gene coverage 150 nt before stop - 10(rpm) default', default=15)
 parser.add_argument('-th2',  type=float, help='Background coverage - codon mean from -115 up to Span', default=0.15)
 parser.add_argument('-span',  type=int, help='Positions before - stop recommended 150 or bigger', default=150)
-parser.add_argument('-bkg',  type=int, help='region for bakground 1 - before tetrasoes OR 2 - between peaks', default=1)
+parser.add_argument('-bkg',  type=int, help='region for bakground con be 1 or 2: 1 - before and 2 - between peaks', default=2)
 parser.add_argument('-col',  type=str, help='column for values: "sum"; "rpm"; "counts"', default='rpm')
-#parser.add_argument('-subsets',  type=str, help='Split to subsets based Stop codon', default='NA')
 args = parser.parse_args()
 
 message = "between peaks" if args.bkg==2 else "{} to {}".format(-args.span, -115)
