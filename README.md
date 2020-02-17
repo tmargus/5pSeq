@@ -128,6 +128,8 @@ for f in 6-AssignRaw/*.h5; do fo=${f##*/}; ./compute_queuing_5PSeq.py -i $f -th1
 Saccharomyces_cerevisiae.R64-1-1.cdna.all.fa
 ```
 
+Main thing to consider is that cDNA sequences  in most cases are starting with AUG (start codon)  and ending with stop codon. Therefore nothing before start codon is aligned and region before stop is also poorly covered. Reads are usually 60 nt long and if half of read don't align (because there is no sequence towards 3' end in this cDNA sequence) read is not aligned. This setup complements to genome. 
+ 
 ### Map 5' positions cDNA  
 `fivePSeqMap2cdnawithOffset.py`
 Input is:  
