@@ -159,7 +159,8 @@ fivePSeqMap2cdnawithOffset.py -i 5-cdna-Aligned/5PSeq/KO20C_V_5PSeq_dedup.bam -o
 
 
 ### Compute QS for fixed codon in the middle of a gene
-
+When looking for a given codon (for example AAA) then 60 nt from 5' - and 30 nt from 3' end are excluded. 
+ 
 ```bash
 fivePSeqQSfromcDNA4PSiteCodon.py  -codon AAA  -i KO20C_V_5PSeq_cdna_off15.pkl -o KO20C_V_QS-coding-region_AAA_P-site.csv
 
@@ -179,6 +180,6 @@ QS for P-Site AAA  A-Site NNN pairs
 70,000 ...
 80,000 ...
 83,534 total QS for codon pairs AAA[NNN]!
-KO20C_V_QS-coding-region_AAA_P-site_v2.csv
+KO20C_V_QS-coding-region_AAA_P-site.csv
 
 ```

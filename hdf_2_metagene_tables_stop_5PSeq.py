@@ -44,7 +44,7 @@ print("\n\
 -glist  subsets by list: {}\n".format(args.i, args.prefix,args.annot, args.genome, args.col, args.th, args.span, args.norm, args.subsets, args.glist))
 
 usage = "./hdf_2_metagene_tables_1_dev.py  -i WTS1_5-End_21-33_idx_assign_rpm.h5   -prefix WTS1_stop_metagene   -norm  Yes\n\n \
-\t\t  assumes *.hd5 file keys structure \"'For_rpm/Chr\"   - strand and chromosome \n " 
+\t\t  assumes *.hd5 file keys structure \"Chr/For\"   - chromosome and strand \n " 
 
 
 if (args.i==None)|(args.prefix==None):
@@ -113,7 +113,7 @@ def read_FASTA(filename, splitstr='|', SplitHeader=True):
                     for entry in file.read().split('>')[1:]]]
 
 def read_FASTA_dictionary(filename, splitstr='|', SplitHeader=False):
-    return {info[0]: seq for info, seq in read_FASTA(filename)}
+    return {info[0]: seq for info, seq in read_FASTA(filename, splitstr=splitstr, SplitHeader=SplitHeader)}
 
 def df_2_ContiniousSeries(df, index, column="rpm"):
     """ returns pd.Series with 0 values for all positions in a range of index.
@@ -136,7 +136,7 @@ def reindex(s, name, index):
     return df.set_index('rel_Pos')[name] #returns pd.Series
 #############################
 
-genome      = read_FASTA_dictionary(genomefile, SplitHeader=False)
+genome      = read_FASTA_dictionary(genomefile, splitstr=' ', SplitHeader=True)
 stop_codons = ['TAA', 'TAG', 'TGA']
 
 chr_len_d = {c: len(genome[c]) for c in yeastChr()}
