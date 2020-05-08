@@ -14,9 +14,11 @@
 # 
 # bkg region can be selected between peaks (-bkg 2) or before tetrasome peak area (-bkg 1 (default) ) # ver. 0.1.7
 #
+# -w weigthing tetra-,tri-, and disomes  YES/NO  default NO # ver. 0.1.8
+
 __author__		= "Tonu Margus"
 __copyright__	= "Copyright 2020"
-__version__		= "0.1.7"
+__version__		= "0.1.8"
 __email__		= "tonu.margus@gmail.com"
 __status__		= "beta"
 
@@ -35,6 +37,7 @@ parser.add_argument('-th2',  type=float, help='Background coverage - codon mean 
 parser.add_argument('-span',  type=int, help='Positions before - stop recommended 150 or bigger', default=150)
 parser.add_argument('-bkg',  type=int, help='region for bakground con be 1 or 2: 1 - before and 2 - between peaks', default=2)
 parser.add_argument('-col',  type=str, help='column for values: "sum"; "rpm"; "counts"', default='rpm')
+parser.add_argument('-w', type=str, help='Weigthing tetra-,tri-, and di-somes: YES/NO/BOTH', default="NO")
 args = parser.parse_args()
 
 message = "between peaks" if args.bkg==2 else "{} to {}".format(-args.span, -115)
@@ -47,7 +50,8 @@ print("\n\
 -th1   region threshold: {}\n\
 -th2      bkg threshold: {}\n\
 -bkg      bkg region is: {}\n\
--span    nt before stop: {}\n".format(args.i, args.o, args.annot, args.col, args.th1, args.th2, message, args.span))
+-w      weigthing peaks: {}\n\
+-span    nt before stop: {}\n".format(args.i, args.o, args.annot, args.col, args.th1, args.th2, message, args.w, args.span))
 
 usage = "./compute_queuing_5PSeq.py -i *.hdf  -o *.csv"
 
@@ -62,6 +66,7 @@ Span       = args.span
 annotation = args.annot
 col        = args.col
 bkg_region = args.bkg
+weighted   = str.upper(args.w)
 
 ## check is there enough space for background
 if (Span<109)  & (bkg==2):
@@ -181,10 +186,11 @@ for ref in yeastChr():
         peak_60   = s.loc[-78 : -76].sum()    # 60 nt before
         peak_90   = s.loc[-108:-106].sum()    # 90 nt before
         # ratios - ivide codon coverage by avarage codon coverage  (rpm/rpm) - unitless
-        qs_stop =  peak_stop/bkg #
-        qs_30   =  (peak_30/bkg) * 2 #
-        qs_60   =  (peak_60/bkg) * 3 #
-        qs_90   =  (peak_90/bkg) * 4 #
+        qs_stop =  peak_stop/bkg 
+        qs_30   =  (peak_30/bkg) 
+        qs_60   =  (peak_60/bkg) 
+        qs_90   =  (peak_90/bkg) 
+        
         ##########
         # collect data
         c2+=1
@@ -196,7 +202,18 @@ index = ["bkg", "qs_stop", "qs_30", "qs_60", "qs_90"]
 df = pd.DataFrame(d, index=index).T
 
 # queuingScore-Weigthed
-df['QS'] = df["qs_stop"] + df["qs_30"] + df["qs_60"] + df["qs_90"]
+df['QS_weighted'] = df["qs_stop"] + df["qs_30"]*2 + df["qs_60"]*3 + df["qs_90"]*4
+# queuingScore
+df['QS']          = df["qs_stop"] + df["qs_30"] + df["qs_60"] + df["qs_90"]
+
+if   weighted == "NO":
+    df.drop(labels="QS_weighted", axis=1, inplace=True)
+elif weighted == "YES":
+    df.drop(labels="QS", axis=1, inplace=True)
+elif weighted == "BOTH":
+else:
+    print("Warnings! parameter -w {} not recognised!".format(weighted))
+
 
 i = 1   #  minimal queing score to keep in table
 j = 50  #  strong queing score worth to check
