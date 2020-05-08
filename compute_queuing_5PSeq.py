@@ -69,11 +69,11 @@ bkg_region = args.bkg
 weighted   = str.upper(args.w)
 
 ## check is there enough space for background
-if (Span<109)  & (bkg==2):
+if (Span<109)  & (bkg_region==2):
     report = "Increase -ppan at least up to 108. Current value is {} ".format(Span)
     sys.exit("\n {} \n".format(report))
 # Span - 115 must be bigger than 9 nt
-if ((Span-115)<9) & (bkg==1):
+if ((Span-115)<9) & (bkg_region==1):
      report = "{}nt is too little for backgrouns. Increase Span at least up to 124".format(Span-115)
      sys.exit("\n {} \n".format(report))
 
@@ -223,7 +223,7 @@ mask1 = df['QS']>i
 mask2 = df['QS']>j
 
 df = df.loc[mask1,:]
-print("There are  {} genes with 'queuingScore-W' bigger than {}".format(df.shape[0], i))
+print("There are  {} genes with 'QueuingScore (QS)' bigger than {}".format(df.shape[0], i))
 print("There are  {} most wavier genes {} times above bakground".format(df.loc[mask2,:].shape[0], j))
 df.to_csv(outfile, sep='\t', header=True, index=True)
 print("Output:\n   {}".format(outfile))
