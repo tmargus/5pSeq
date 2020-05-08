@@ -211,6 +211,7 @@ if   weighted == "NO":
 elif weighted == "YES":
     df.drop(labels="QS", axis=1, inplace=True)
 elif weighted == "BOTH":
+    pass
 else:
     print("Warnings! parameter -w {} not recognised!".format(weighted))
 
